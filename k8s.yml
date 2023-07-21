@@ -1,0 +1,72 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cco23-web
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: cco23-web
+    spec:
+      containers:
+      - name: cco23-web
+        image: bnkacr23.azurecr.io/cco23_web:v1
+        ports:
+        - containerPort: 80
+        env:
+        - name: ASPNETCORE_URLS
+          value: http://*:80
+        - name: EnvName
+          value: k8s
+        - name: ApiUrl
+          value: http://cco23-api/weatherforecast
+  selector:
+    matchLabels:
+      app: cco23-web
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cco23-web
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+  selector:
+    app: cco23-web
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cco23-api
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: cco23-api
+    spec:
+      containers:
+      - name: cco23-api
+        image: bnkacr23.azurecr.io/cco23_api:v1
+        ports:
+        - containerPort: 80
+        env:
+        - name: ASPNETCORE_URLS
+          value: http://*:80
+  selector:
+    matchLabels:
+      app: cco23-api
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cco23-api
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+  selector:
+    app: cco23-api

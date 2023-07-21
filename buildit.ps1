@@ -21,7 +21,6 @@ tye push -i
 tye deploy -i
 
 
-
 ## Containerize
 ### Basic Dockerfile
 cd .\code\myChat
@@ -35,7 +34,7 @@ dotnet myChat.dll
 
 cd .\code\myChat\ # so we're in .\myChat
 $imgName = "mychat:simple"
-docker build -t $imgName -f ./code/myChat/Dockerfile.simple ./code/myChat
+docker build -t $imgName -f ./Dockerfile ./
 docker image list $imgName
 docker run -p 5001:80 -d $imgName
 # http://localhost:5001
@@ -43,11 +42,13 @@ docker container list
 docker container stop 6eee
 docker container rm 6eee
 
+## add Dockerfile to Chat and API
+cd ..\..
 
-docker build -f ./code/myApi/Dockerfile -t nc23_api:v0.1 ./code/myApi --build-arg tag=v0.1
-docker build -f ./code/myChat/Dockerfile -t nc23_web:v0.1 ./code/myChat --build-arg tag=v0.1
+docker build -f ./code/myApi/Dockerfile -t cco23_api:v0.1 ./code/myApi --build-arg tag=v0.1
+docker build -f ./code/myChat/Dockerfile -t cco23_web:v0.1 ./code/myChat --build-arg tag=v0.1
 
-docker image list nc23*
+docker image list cco23*
 
 ## add docker-compose.yml and test
 docker compose build
@@ -57,18 +58,18 @@ docker compose down
 
 # push to acr bnkacr23
 az acr login -n bnkacr23
-az acr build --image bnkacr23.azurecr.io/nc23_web:v1 --registry bnkacr23 -f ./code/myChat/Dockerfile ./code/myChat --build-arg tag=v1
-az acr build --image bnkacr23.azurecr.io/nc23_api:v1 --registry bnkacr23 -f ./code/myApi/Dockerfile ./code/myApi --build-arg tag=v1
+az acr build --image bnkacr23.azurecr.io/cco23_web:v1 --registry bnkacr23 -f ./code/myChat/Dockerfile ./code/myChat --build-arg tag=v1
+az acr build --image bnkacr23.azurecr.io/cco23_api:v1 --registry bnkacr23 -f ./code/myApi/Dockerfile ./code/myApi --build-arg tag=v1
 
 
 ## Test in ACA
-$env = "nc23-demo"
-$rg = "nc23-demos-rg"
-az containerapp up -n nc23-web-aca -g $rg --environment $env --image bnkacr23.azurecr.io/nc23_web:v1 --ingress external
-az containerapp up -n nc23-api-aca -g $rg --environment $env --image bnkacr23.azurecr.io/nc23_api:v1 --ingress internal
+$env = "cco23-demo"
+$rg = "cco23-demos-rg"
+az containerapp up -n cco23-web-aca -g $rg --environment $env --image bnkacr23.azurecr.io/cco23_web:v1 --ingress external
+az containerapp up -n cco23-api-aca -g $rg --environment $env --image bnkacr23.azurecr.io/cco23_api:v1 --ingress internal
 az containerapp list -o table
-az containerapp update -n nc23-web-aca -g $rg --set-env-vars "EnvName=ACA" 
-az containerapp update -n nc23-web-aca -g $rg --set-env-vars "ApiUrl=http://nc23-api-aca/weatherforecast" 
+az containerapp update -n cco23-web-aca -g $rg --set-env-vars "EnvName=ACA" 
+az containerapp update -n cco23-web-aca -g $rg --set-env-vars "ApiUrl=http://cco23-api-aca/weatherforecast" 
 
 ## Test in AKS
 
@@ -87,8 +88,8 @@ az aks get-credentials --resource-group $aksrg --name $aksName
 # attach acr to aks
 az aks update -n $aksName -g $aksrg --attach-acr $acrName
 
-$ns = "nc23-demos"
+$ns = "cco23-demos"
 kubectl create namespace $ns
-kubectl apply -n $ns -f ./k8s
+kubectl apply -n $ns -f k8s.yml
 
 

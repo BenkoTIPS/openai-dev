@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  mychat:
+    image: cco23_web:v0.1
+    ports:
+      - 5100:80
+    environment:
+      - EnvName=DockerCompose
+      - ApiUrl=http://myapi/weatherforecast
+    depends_on:
+      - myapi
+
+  myapi:
+    image: cco23_api:v0.1
+    ports:
+      - 5200:80

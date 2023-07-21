@@ -1,0 +1,17 @@
+# Simple Dockerfile
+# 
+# dotnet build -c release -o dist
+# cd .\dist
+# dotnet myChat.dll
+
+FROM mcr.microsoft.com/dotnet/aspnet:7.0
+
+WORKDIR /app
+
+COPY dist .
+
+ENV EnvName=SimpleDocker
+
+EXPOSE 80
+
+CMD ["dotnet","myChat.dll"]

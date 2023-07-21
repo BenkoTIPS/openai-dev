@@ -10,3 +10,35 @@
     <h1 class="display-4">Welcome <b>@Config["EnvName"]</b></h1>
     <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>
+
+<form method="get">
+<div class='input-group mb-3'>
+    <h2>Weather API:&nbsp;</h2>
+    <input class="form-control" type="text" name="url" value='@Config["ApiUrl"]'></input>
+    <input class="btn btn-primary" type="submit" value="go"></input>
+</div>
+    @if (@Model.Forecasts != null)
+    {
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Temp. (C)</th>
+                <th>Temp. (F)</th>
+                <th>Summary</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var forecast in @Model.Forecasts)
+            {
+                <tr>
+                    <td>@forecast.date.ToShortDateString()</td>
+                    <td>@forecast.temperatureC</td>
+                    <td>@forecast.temperatureF</td>
+                    <td>@forecast.summary</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    }
+</form>
