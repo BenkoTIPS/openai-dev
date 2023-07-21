@@ -1,0 +1,237 @@
+@page
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Asteroid Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            background-color: black;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="game-canvas" width="800" height="600"></canvas>
+
+    <script>
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 800;
+        canvas.height = 600;
+
+        let shipX = canvas.width / 2;
+        let shipY = canvas.height / 2;
+        let shipAngle = 0;
+        let shipRotationSpeed = 0.05;
+        let shipSpeed = 0;
+        let shipAcceleration = 0.2;
+
+        let bullets = [];
+        let bulletSize = 3;
+        let bulletSpeed = 5;
+
+        let asteroids = [];
+        let asteroidCount = 10;
+        let asteroidMaxSize = 40;
+        let asteroidSpeed = 1;
+
+        function createAsteroids() {
+            for (let i = 0; i < asteroidCount; i++) {
+                let x = Math.random() * canvas.width;
+                let y = Math.random() * canvas.height;
+                let size = Math.random() * asteroidMaxSize + 10;
+                let speedX = (Math.random() - 0.5) * asteroidSpeed;
+                let speedY = (Math.random() - 0.5) * asteroidSpeed;
+
+                asteroids.push({ x, y, size, speedX, speedY });
+            }
+        }
+
+        function drawShip() {
+            ctx.strokeStyle = 'white';
+            ctx.beginPath();
+            ctx.moveTo(
+                shipX + 15 * Math.cos(shipAngle),
+                shipY + 15 * Math.sin(shipAngle)
+            );
+            ctx.lineTo(
+                shipX - 10 * Math.sin(shipAngle),
+                shipY + 10 * Math.cos(shipAngle)
+            );
+            ctx.lineTo(
+                shipX + 10 * Math.sin(shipAngle),
+                shipY - 10 * Math.cos(shipAngle)
+            );
+            ctx.closePath();
+            ctx.stroke();
+        }
+
+        function drawBullets() {
+            ctx.fillStyle = 'yellow';
+            for (let i = 0; i < bullets.length; i++) {
+                let bullet = bullets[i];
+                ctx.beginPath();
+                ctx.arc(bullet.x, bullet.y, bulletSize, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+
+        function drawAsteroids() {
+            ctx.fillStyle = 'gray';
+            for (let i = 0; i < asteroids.length; i++) {
+                let asteroid = asteroids[i];
+                ctx.beginPath();
+                ctx.arc(asteroid.x, asteroid.y, asteroid.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+
+        function moveShip() {
+            shipX += shipSpeed * Math.cos(shipAngle);
+            shipY += shipSpeed * Math.sin(shipAngle);
+
+            if (shipX > canvas.width) {
+                shipX = 0;
+            } else if (shipX < 0) {
+                shipX = canvas.width;
+            }
+
+            if (shipY > canvas.height) {
+                shipY = 0;
+            } else if (shipY < 0) {
+                shipY = canvas.height;
+            }
+        }
+
+        function moveBullets() {
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                let bullet = bullets[i];
+                bullet.x += bulletSpeed * Math.cos(bullet.angle);
+                bullet.y += bulletSpeed * Math.sin(bullet.angle);
+
+                if (
+                    bullet.x > canvas.width ||
+                    bullet.x < 0 ||
+                    bullet.y > canvas.height ||
+                    bullet.y < 0
+                ) {
+                    bullets.splice(i, 1);
+                }
+            }
+        }
+
+        function moveAsteroids() {
+            for (let i = 0; i < asteroids.length; i++) {
+                let asteroid = asteroids[i];
+                asteroid.x += asteroid.speedX;
+                asteroid.y += asteroid.speedY;
+
+                if (asteroid.x > canvas.width + asteroid.size) {
+                    asteroid.x = -asteroid.size;
+                } else if (asteroid.x < -asteroid.size) {
+                    asteroid.x = canvas.width + asteroid.size;
+                }
+
+                if (asteroid.y > canvas.height + asteroid.size) {
+                    asteroid.y = -asteroid.size;
+                } else if (asteroid.y < -asteroid.size) {
+                    asteroid.y = canvas.height + asteroid.size;
+                }
+            }
+        }
+
+        function detectCollision() {
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                for (let j = asteroids.length - 1; j >= 0; j--) {
+                    let bullet = bullets[i];
+                    let asteroid = asteroids[j];
+                    let dx = bullet.x - asteroid.x;
+                    let dy = bullet.y - asteroid.y;
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < asteroid.size) {
+                        bullets.splice(i, 1);
+                        asteroids.splice(j, 1);
+                        break;
+                    }
+                }
+            }
+        }
+
+        function update() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawShip();
+            drawBullets();
+            drawAsteroids();
+
+            moveShip();
+            moveBullets();
+            moveAsteroids();
+
+            detectCollision();
+
+            requestAnimationFrame(update);
+        }
+
+        function rotateShip(direction) {
+            if (direction === 'left') {
+                shipAngle -= shipRotationSpeed;
+            } else if (direction === 'right') {
+                shipAngle += shipRotationSpeed;
+            }
+        }
+
+        function accelerateShip() {
+            shipSpeed += shipAcceleration;
+            if (shipSpeed > 5) {
+                shipSpeed = 5;
+            }
+        }
+
+        function decelerateShip() {
+            shipSpeed -= shipAcceleration;
+            if (shipSpeed < 0) {
+                shipSpeed = 0;
+            }
+        }
+
+        function shootBullet() {
+            let bulletX = shipX + 15 * Math.cos(shipAngle);
+            let bulletY = shipY + 15 * Math.sin(shipAngle);
+            let bulletAngle = shipAngle;
+
+            bullets.push({ x: bulletX, y: bulletY, angle: bulletAngle });
+        }
+
+        createAsteroids();
+        update();
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowLeft') {
+                rotateShip('left');
+            } else if (event.key === 'ArrowRight') {
+                rotateShip('right');
+            } else if (event.key === 'ArrowUp') {
+                accelerateShip();
+            } else if (event.key === ' ') {
+                shootBullet();
+            }
+        });
+
+        document.addEventListener('keyup', (event) => {
+            if (event.key === 'ArrowUp') {
+                decelerateShip();
+            }
+        });
+    </script>
+</body>
+</html>
